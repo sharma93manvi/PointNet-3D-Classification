@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 from torch_geometric.loader import DataLoader
 from tqdm import tqdm
+from torch.utils.data import random_split
 
 from data.dataset import get_modelnet40_datasets
 from models.pointnet import PointNetClassifier
@@ -106,6 +107,12 @@ def main() -> None:
     parser.add_argument("--num-classes", type=int, default=40)
     parser.add_argument("--dropout", type=float, default=0.3)
     parser.add_argument("--tnet-reg-weight", type=float, default=1e-3, help="Orthogonality regularization weight")
+    parser.add_argument(
+        "--val-split",
+        type=float,
+        default=0.1,
+        help="Fraction of training data to use for validation (e.g. 0.1 = 90/10).",
+    )
 
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--force-reload", action="store_true", help="Re-process dataset even if cached")
@@ -125,6 +132,16 @@ def main() -> None:
         force_reload=args.force_reload,
     )
 
+    # Create a proper validation split from the ModelNet training set (not the test set).
+    # This helps ensure we report generalization performance correctly.
+    if not (0.0 < args.val_split < 1.0):
+        raise ValueError("--val-split must be between 0 and 1 (exclusive).")
+
+    val_size = int(len(train_dataset) * args.val_split)
+    train_size = len(train_dataset) - val_size
+    generator = torch.Generator().manual_seed(args.seed)
+    train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size], generator=generator)
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=args.batch_size,
@@ -132,7 +149,7 @@ def main() -> None:
         num_workers=args.num_workers,
     )
     val_loader = DataLoader(
-        test_dataset,
+        val_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
