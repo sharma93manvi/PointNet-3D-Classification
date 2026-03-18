@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+checkpoints/
+.venv/
+*.pth
+*.pt
+training_log.csv
+
