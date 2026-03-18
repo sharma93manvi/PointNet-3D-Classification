@@ -17,20 +17,23 @@ def get_modelnet40_datasets(
     ModelNet provides meshes (vertices + faces). We use SamplePoints to convert
     each mesh into a fixed-size point cloud (with `data.pos` holding [N, 3]).
     """
-    pre_transform = SamplePoints(num=num_points, remove_faces=True)
+    # Use `transform` (runtime) instead of `pre_transform` so that ModelNet's mesh
+    # processing is cached quickly. `SamplePoints` is then applied on-the-fly
+    # when items are accessed, which makes smoke runs much faster.
+    transform = SamplePoints(num=num_points, remove_faces=True)
 
     train_dataset = ModelNet(
         root=root,
         name="40",
         train=True,
-        pre_transform=pre_transform,
+        transform=transform,
         force_reload=force_reload,
     )
     test_dataset = ModelNet(
         root=root,
         name="40",
         train=False,
-        pre_transform=pre_transform,
+        transform=transform,
         force_reload=force_reload,
     )
     return train_dataset, test_dataset

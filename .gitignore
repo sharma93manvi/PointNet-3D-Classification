@@ -6,3 +6,6 @@ checkpoints/
 *.pt
 training_log.csv
 
+# ModelNet downloads / cached preprocessed files (huge).
+data/modelnet/
+
