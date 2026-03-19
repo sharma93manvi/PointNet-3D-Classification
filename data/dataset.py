@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from torch_geometric.datasets import ModelNet
-from torch_geometric.transforms import SamplePoints
+from torch_geometric.transforms import Compose, NormalizeScale, SamplePoints
 
 
 def get_modelnet40_datasets(
@@ -20,7 +20,16 @@ def get_modelnet40_datasets(
     # Use `transform` (runtime) instead of `pre_transform` so that ModelNet's mesh
     # processing is cached quickly. `SamplePoints` is then applied on-the-fly
     # when items are accessed, which makes smoke runs much faster.
-    transform = SamplePoints(num=num_points, remove_faces=True)
+    #
+    # IMPORTANT: PointNet is sensitive to scale/translation. ModelNet meshes are not
+    # guaranteed to be centered/scaled consistently, so normalize each sampled point
+    # cloud to a unit sphere for stable training.
+    transform = Compose(
+        [
+            SamplePoints(num=num_points, remove_faces=True),
+            NormalizeScale(),
+        ]
+    )
 
     train_dataset = ModelNet(
         root=root,
