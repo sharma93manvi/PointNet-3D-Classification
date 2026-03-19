@@ -104,12 +104,24 @@ python evaluate.py \
 
 The evaluation prints per-class accuracy and overall test accuracy.
 
-## Results (Example)
-PointNet accuracy varies with training settings and preprocessing. After you train, run `evaluate.py` to fill in your exact numbers.
+## Results (Actual)
+These are the actual results from a quick CPU run with normalized point clouds.
 
-| Num Points | Overall Accuracy (Test) | Best Val Accuracy | Notes |
-|---:|---:|
-| 512 | 79.13% | 84.35% | 8 epochs, normalized point clouds |
+**Run settings**
+- Num points: `512`
+- Epochs: `8`
+- Train/val split: `0.9 / 0.1` (from the training set)
+- Checkpoint: `checkpoints/run_reasonable8/best_model.pth`
+
+**Command used**
+```bash
+python train.py --data-root data/modelnet --num-points 512 --epochs 8 --lr 0.001 --batch-size 16 --num-workers 0 --output-dir checkpoints/run_reasonable8 --val-split 0.1 --cpu
+python evaluate.py --data-root data/modelnet --num-points 512 --checkpoint checkpoints/run_reasonable8/best_model.pth --batch-size 16 --num-workers 0 --cpu
+```
+
+| Num Points | Best Val Accuracy | Overall Test Accuracy |
+|---:|---:|---:|
+| 512 | 84.35% | 79.13% |
 
 ## Why PointNet Matters for 3D Understanding
 3D point clouds have no inherent order, but many standard neural layers assume ordered inputs. PointNet solves this by using:
